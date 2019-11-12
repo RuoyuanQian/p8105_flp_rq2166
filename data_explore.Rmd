@@ -1,0 +1,100 @@
+---
+title: "try"
+author: "Ruoyuan Qian"
+date: "2019/11/11"
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(tidyverse)
+
+
+```
+
+```{r}
+data_2019 = read_csv("./data/2019.csv")
+data_2015 = read_csv("./data/2015.csv")
+data_2016 = read_csv("./data/2016.csv")
+data_2017 = read_csv("./data/2017.csv")
+data_2018 = read_csv("./data/2018.csv")
+data_all = read_excel("./data/WHR.xls")
+data_concap = read_csv("./data/concap.csv")
+
+```
+```{r}
+data_all = 
+ data_all %>% 
+ janitor::clean_names() 
+
+data_concap = 
+  data_concap %>% 
+ janitor::clean_names() 
+
+sum_na = function(x){
+  sum = sum(is.na(x))
+  sum
+}
+
+inter = 
+data_all %>% 
+  select(country_name:delivery_quality) 
+
+# 每个变量删失个数
+map(inter,sum_na) %>% 
+  as.data.frame()  
+
+#选择删失在30以下的变量
+inter_r = 
+  inter %>% 
+  select(country_name:freedom_to_make_life_choices,positive_affect,negative_affect)
+
+```
+
+```{r}
+# 有删失的行的数据集
+ list <-which(rowSums(is.na(inter_r)) > 0) # hafu数据集中有缺失值的行。
+  data_all_na <- inter_r[list,]
+
+  # 最终数据集：1.无删失 2.年份2011-2018
+ final_data = 
+ inter_r %>% 
+  drop_na() %>% 
+    filter(year %in% c(2011:2018))
+  
+ # 最终国家数量
+   country_number =
+ inter_r %>% 
+  drop_na() %>% 
+    filter(year %in% c(2011:2018)) %>% 
+    select(country_name) %>% 
+    distinct() %>% 
+    pull(country_name) %>% 
+    length()
+   
+# 最终国家名字  
+country_name = 
+   inter_r %>% 
+  drop_na() %>% 
+    filter(year %in% c(2011:2018)) %>% 
+    select(country_name) %>% 
+    distinct()
+
+# 与地图完全匹配
+joint_concap = left_join(country_name,data_concap,by="country_name")
+
+#变量个数
+length(final_data)
+```
+
+https://www.kaggle.com/javadzabihi/happiness-2017-visualization-prediction
+三维线性回归
+
+https://www.kaggle.com/vamsikrishna/happiness-index-and-terrorism
+terrorism
+
+https://www.kaggle.com/mshinde10/predicting-world-happiness/notebook
+plotly画世界地图
